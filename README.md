@@ -40,6 +40,9 @@ two principles a production security-first component library ships on —
 
 ## The example
 
+![The secure-text-input demo: a public email, a masked password, an injection
+attempt being blocked, and events that never carry the value.](./secure-input-demo.gif)
+
 `example/secure-input.js` is a working, form-associated, accessible
 **security-first text field**: it masks non-public tiers, flags injection
 patterns as an early warning, keeps the value out of events, submits via
