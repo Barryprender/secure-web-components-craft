@@ -8,33 +8,43 @@
 //   - form participation + host role via ElementInternals (section 8)
 //   - leak-free listeners torn down with one AbortController (section 2)
 //   - full keyboard operation and visible focus (accessibility)
+//   - themeable via custom properties + ::part(), no forking (section 12)
 //
 // Usage:
 //   <label id="l">Rate this</label>
 //   <star-rating max="5" value="3" aria-labelledby="l"></star-rating>
+//
+// Theme it from the page (no need to touch this file):
+//   star-rating { --star-color: #d0d7de; --star-active-color: #e5534b;
+//                  --star-size: 2.25rem; --star-gap: .25em; }
+//   star-rating::part(star) { /* style each star */ }
 
 const sheet = new CSSStyleSheet();
+// Every visible value is a CSS custom property with a fallback. Custom
+// properties pierce the shadow boundary, so a page can theme the component
+// without reaching inside it — the only safe way to expose styling. The parts
+// (part="stars", part="star") let a page target structure with ::part().
 sheet.replaceSync(`
   :host {
     display: inline-flex;
-    gap: .15em;
-    font-size: 1.75rem;
+    gap: var(--star-gap, .15em);
+    font-size: var(--star-size, 1.75rem);
     line-height: 1;
     cursor: pointer;
-    color: #c9c9c9;
+    color: var(--star-color, #c9c9c9);
     outline: none;
   }
   :host(:focus-visible) {
-    outline: 2px solid currentColor;
+    outline: var(--star-focus-outline, 2px solid currentColor);
     outline-offset: 3px;
     border-radius: 4px;
   }
   :host([disabled]) {
     cursor: not-allowed;
-    opacity: .5;
+    opacity: var(--star-disabled-opacity, .5);
   }
   .star { transition: color 120ms ease; }
-  .star[data-on] { color: #f5a623; }
+  .star[data-on] { color: var(--star-active-color, #f5a623); }
 `);
 
 const template = document.createElement("template");
@@ -172,9 +182,10 @@ class StarRating extends HTMLElement {
       this.#stars.replaceChildren(...Array.from({ length: max }, (_, i) => {
         const s = document.createElement("span");
         s.className = "star";
+        s.setAttribute("part", "star"); // page can style each star via ::part(star)
         s.dataset.index = String(i);
         s.setAttribute("aria-hidden", "true"); // the host carries the semantics
-        s.textContent = "★"; // ★
+        s.textContent = "★";
         return s;
       }));
     }

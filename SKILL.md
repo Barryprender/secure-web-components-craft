@@ -77,6 +77,26 @@ Never let a client control stand in for a server one.
   `addEventListener`, so one `abort()` in `disconnectedCallback` removes them all.
 - **Declarative Shadow DOM** when the element must render before its script loads.
 
+## Styling and theming
+
+Shadow DOM blocks page CSS *by design* — that is the encapsulation that keeps a
+component unbreakable, not a flaw. So expose styling through the three channels
+that are meant to cross the boundary, and never make a consumer fork the file to
+restyle it:
+
+- **CSS custom properties with fallbacks** — `color: var(--x-color, #333)`.
+  Custom properties pierce the shadow boundary, so a page sets `--x-color` and
+  the component picks it up. Name them in one consistent namespace (a design-
+  token prefix), and document every one.
+- **`::part()`** — put `part="name"` on key internal elements so a page can style
+  them structurally (`my-el::part(label)`). Expose parts deliberately; each one
+  is a public API you must keep stable.
+- **`:host` and `:host([state])`** — style the element itself and its states
+  (`:host([disabled])`, `:host(:focus-visible)`) from inside.
+
+Hard-coded colours and sizes with no custom property are the tell of a component
+nobody can theme. A themeable component ships its defaults *as* fallbacks.
+
 ## Audit mode
 
 Report pass / fail / could-not-tell for each, in order:

@@ -357,3 +357,68 @@ exists to prevent.
 - Removed focus outline with no replacement → keyboard users are lost.
 - `innerHTML` built from untrusted input → XSS. Build DOM nodes or sanitize;
   never interpolate user strings into an HTML string.
+- Hard-coded colours and sizes with no custom property → a component nobody can
+  theme without forking it.
+
+## 12. Styling and theming
+
+Shadow DOM blocks page CSS on purpose. Three channels are built to cross it, and
+they are the whole public styling API.
+
+### Custom properties (pierce the boundary)
+
+Ship every visible value as a custom property with the default *as the fallback*:
+
+```js
+sheet.replaceSync(`
+  :host { color: var(--rating-color, #c9c9c9); font-size: var(--rating-size, 1.5rem); }
+  .star[data-on] { color: var(--rating-active-color, #f5a623); }
+`);
+```
+
+The page themes it without reaching inside:
+
+```css
+star-rating { --rating-color: #d0d7de; --rating-active-color: #e5534b; }
+```
+
+### `::part()` (structural styling)
+
+Tag internal elements, then the page targets them:
+
+```js
+el.setAttribute("part", "star");          // inside the component
+```
+```css
+star-rating::part(star) { text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+```
+
+A `part` is a public contract — renaming one is a breaking change. Expose only
+the elements you intend consumers to style. Re-expose a nested component's parts
+with `exportparts` when you wrap one.
+
+### `:host` and host-context
+
+```css
+:host { display: inline-flex; }
+:host([disabled]) { opacity: .5; }
+:host(:focus-visible) { outline: 2px solid currentColor; }
+```
+
+### What does NOT work, and why that is correct
+
+- A page's `star-rating .star { ... }` selector cannot reach a shadow child.
+  That is encapsulation, not a bug — it is why the component cannot be broken by
+  unrelated page CSS.
+- `::slotted()` styles only *projected light-DOM* children, and only at the top
+  level — it cannot reach into the shadow tree.
+
+### Dark mode and reduced motion
+
+Keep theme tokens responsive without the consumer doing anything:
+
+```css
+:host { --rating-color: #c9c9c9; }
+@media (prefers-color-scheme: dark) { :host { --rating-color: #555; } }
+@media (prefers-reduced-motion: reduce) { .star { transition: none; } }
+```

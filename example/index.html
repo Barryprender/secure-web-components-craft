@@ -8,6 +8,16 @@
     body { font: 16px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; }
     form { display: grid; gap: 1.5rem; }
     output { font-variant-numeric: tabular-nums; }
+
+    /* Theming from the page only — the component file is never touched.
+       Custom properties pass through the Shadow DOM; ::part targets a star. */
+    .themed {
+      --star-color: #d0d7de;
+      --star-active-color: #e5534b;
+      --star-size: 2.25rem;
+      --star-gap: .25em;
+    }
+    .themed::part(star) { text-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
   </style>
 </head>
 <body>
@@ -23,6 +33,14 @@
     <p>Current value: <output id="out">3</output></p>
     <p><button type="submit">Submit</button> <button type="reset">Reset</button></p>
   </form>
+
+  <h2>Theming</h2>
+  <p>The same component, restyled only from page CSS — bigger, red, with a shadow
+     on each star. No change to <code>star-rating.js</code>.</p>
+  <p>
+    <label id="themed-label">Rate this film</label><br>
+    <star-rating class="themed" max="5" value="4" aria-labelledby="themed-label"></star-rating>
+  </p>
 
   <script type="module" src="./star-rating.js"></script>
   <script type="module">
