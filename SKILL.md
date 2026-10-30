@@ -115,7 +115,8 @@ Report pass / fail / could-not-tell for each, in order:
    with the server-side requirement named?
 
 Full detail and copy-paste examples are in `reference.md`. A worked, accessible,
-form-associated example is in `example/star-rating.js`.
+form-associated example — a security-first text field — is in
+`example/secure-input.js`.
 
 ## Check before finishing
 

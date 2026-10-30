@@ -207,7 +207,9 @@ Non-negotiable regardless of form status:
 Put meaningful content in the light DOM so the element degrades to plain HTML:
 
 ```html
-<star-rating value="3">Rated 3 out of 5</star-rating>
+<secure-text-input name="email" label="Email">
+  <input name="email" type="email"> <!-- real input until the script upgrades -->
+</secure-text-input>
 ```
 
 For server rendering before the script loads, use Declarative Shadow DOM:
@@ -371,15 +373,17 @@ Ship every visible value as a custom property with the default *as the fallback*
 
 ```js
 sheet.replaceSync(`
-  :host { color: var(--rating-color, #c9c9c9); font-size: var(--rating-size, 1.5rem); }
-  .star[data-on] { color: var(--rating-active-color, #f5a623); }
+  :host { --_accent: var(--secure-input-accent, #0969da); }
+  .input { border: 1px solid var(--secure-input-border, #8c959f);
+           border-radius: var(--secure-input-radius, 6px); }
+  .input:focus-visible { outline: 2px solid var(--_accent); }
 `);
 ```
 
 The page themes it without reaching inside:
 
 ```css
-star-rating { --rating-color: #d0d7de; --rating-active-color: #e5534b; }
+secure-text-input { --secure-input-accent: #8250df; --secure-input-radius: 10px; }
 ```
 
 ### `::part()` (structural styling)
@@ -387,10 +391,10 @@ star-rating { --rating-color: #d0d7de; --rating-active-color: #e5534b; }
 Tag internal elements, then the page targets them:
 
 ```js
-el.setAttribute("part", "star");          // inside the component
+input.setAttribute("part", "input");       // inside the component
 ```
 ```css
-star-rating::part(star) { text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+secure-text-input::part(input) { font-size: 1.1rem; }
 ```
 
 A `part` is a public contract — renaming one is a breaking change. Expose only
@@ -407,9 +411,9 @@ with `exportparts` when you wrap one.
 
 ### What does NOT work, and why that is correct
 
-- A page's `star-rating .star { ... }` selector cannot reach a shadow child.
-  That is encapsulation, not a bug — it is why the component cannot be broken by
-  unrelated page CSS.
+- A page's `secure-text-input .input { ... }` selector cannot reach a shadow
+  child. That is encapsulation, not a bug — it is why the component cannot be
+  broken by unrelated page CSS.
 - `::slotted()` styles only *projected light-DOM* children, and only at the top
   level — it cannot reach into the shadow tree.
 
@@ -418,7 +422,7 @@ with `exportparts` when you wrap one.
 Keep theme tokens responsive without the consumer doing anything:
 
 ```css
-:host { --rating-color: #c9c9c9; }
-@media (prefers-color-scheme: dark) { :host { --rating-color: #555; } }
-@media (prefers-reduced-motion: reduce) { .star { transition: none; } }
+:host { --secure-input-border: #8c959f; }
+@media (prefers-color-scheme: dark) { :host { --secure-input-border: #444c56; } }
+@media (prefers-reduced-motion: reduce) { .input { transition: none; } }
 ```

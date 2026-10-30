@@ -40,9 +40,12 @@ two principles a production security-first component library ships on —
 
 ## The example
 
-`example/star-rating.js` is a working, form-associated, keyboard-accessible
-control that uses the patterns the skill teaches. Open `example/index.html` in
-any modern browser to try it — no build, no server step needed.
+`example/secure-input.js` is a working, form-associated, accessible
+**security-first text field**: it masks non-public tiers, flags injection
+patterns as an early warning, keeps the value out of events, submits via
+`ElementInternals`, and is fully themeable. Open `example/index.html` in any
+modern browser to try it — type `<script>` into a field to see the block.
+No build, no server step needed.
 
 ## The reference implementation
 

@@ -3,53 +3,74 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>star-rating demo</title>
+  <title>secure-text-input demo</title>
   <style>
-    body { font: 16px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; }
-    form { display: grid; gap: 1.5rem; }
-    output { font-variant-numeric: tabular-nums; }
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
+    form { display: grid; gap: 1.25rem; max-width: 24rem; }
+    button { padding: .5em 1em; font: inherit; }
+    .log { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+           padding: .75em; font: .85rem ui-monospace, monospace; white-space: pre-wrap;
+           min-height: 3em; }
+    h2 { margin-block-start: 2.5rem; }
 
-    /* Theming from the page only — the component file is never touched.
-       Custom properties pass through the Shadow DOM; ::part targets a star. */
-    .themed {
-      --star-color: #d0d7de;
-      --star-active-color: #e5534b;
-      --star-size: 2.25rem;
-      --star-gap: .25em;
+    /* Theming from the page only — the component file is never touched. */
+    .branded {
+      --secure-input-accent: #8250df;
+      --secure-input-radius: 10px;
+      --secure-input-label-color: #8250df;
     }
-    .themed::part(star) { text-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+    .branded::part(input) { font-size: 1.05rem; }
   </style>
 </head>
 <body>
-  <h1>star-rating</h1>
-  <p>Operate it with the mouse, or focus it and use arrow keys, Home and End.
-     It submits with the form and announces its value to a screen reader.</p>
+  <h1>secure-text-input</h1>
+  <p>A security-first field. It masks non-public tiers, flags injection patterns
+     as an early warning, keeps the value out of events, and submits via the
+     form. Type <code>&lt;script&gt;</code> into a field to see the block.</p>
 
   <form>
-    <p>
-      <label id="rate-label">Rate this article</label><br>
-      <star-rating name="score" max="5" value="3" aria-labelledby="rate-label"></star-rating>
-    </p>
-    <p>Current value: <output id="out">3</output></p>
-    <p><button type="submit">Submit</button> <button type="reset">Reset</button></p>
+    <secure-text-input name="email" label="Email (public tier)" tier="public"></secure-text-input>
+    <secure-text-input name="password" label="Password (sensitive, masked)" tier="sensitive"></secure-text-input>
+    <secure-text-input name="note" label="No tier set → fails secure (masked)"></secure-text-input>
+    <div>
+      <button type="submit">Submit</button>
+      <button type="reset">Reset</button>
+    </div>
   </form>
 
-  <h2>Theming</h2>
-  <p>The same component, restyled only from page CSS — bigger, red, with a shadow
-     on each star. No change to <code>star-rating.js</code>.</p>
-  <p>
-    <label id="themed-label">Rate this film</label><br>
-    <star-rating class="themed" max="5" value="4" aria-labelledby="themed-label"></star-rating>
-  </p>
+  <h2>Events the page hears</h2>
+  <div class="log" id="log" aria-live="polite">waiting…</div>
 
-  <script type="module" src="./star-rating.js"></script>
+  <h2>Theming</h2>
+  <p>The same component, restyled only from page CSS — purple accent, rounder
+     corners, bigger text. No change to <code>secure-input.js</code>.</p>
+  <form>
+    <secure-text-input class="branded" name="brand" label="Branded field"></secure-text-input>
+  </form>
+
+  <script type="module" src="./secure-input.js"></script>
   <script type="module">
-    const rating = document.querySelector("star-rating");
-    const out = document.getElementById("out");
-    rating.addEventListener("change", (e) => { out.textContent = e.detail.value; });
-    document.querySelector("form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      out.textContent = `submitted: ${new FormData(e.target).get("score")}`;
+    const log = document.getElementById("log");
+    const lines = [];
+    const add = (msg) => {
+      lines.unshift(msg);
+      log.textContent = lines.slice(0, 8).join("\n");
+    };
+
+    // Note what the events carry: identity + tier, never the value.
+    document.addEventListener("secure-input-change", (e) => {
+      add(`change     → ${JSON.stringify(e.detail)}`);
+    });
+    document.addEventListener("secure-threat-detected", (e) => {
+      add(`THREAT     → ${JSON.stringify(e.detail)}`);
+    });
+
+    document.querySelectorAll("form").forEach((form) => {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(form).entries());
+        add(`submitted  → ${JSON.stringify(data)}`);
+      });
     });
   </script>
 </body>
