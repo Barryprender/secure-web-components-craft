@@ -38,6 +38,42 @@ two principles a production security-first component library ships on —
 - An **audit mode** that reports pass / fail / could-not-tell against the eight
   most common Web Component security and correctness bugs
 
+## Example prompts
+
+Paste any of these to your agent with the skill installed:
+
+- **Audit** — "Audit this custom element for security issues and lifecycle leaks:"
+  ```js
+  class PriceField extends HTMLElement {
+    connectedCallback() {
+      this.attachShadow({ mode: "open" }).innerHTML = `<input id="p">`;
+      this.shadowRoot.querySelector("#p").addEventListener("input", (e) =>
+        this.dispatchEvent(new CustomEvent("change", {
+          detail: { value: e.target.value }, composed: true,
+        })));
+    }
+  }
+  ```
+  → flags: DOM built from an `innerHTML` string; the `input` listener added in
+  `connectedCallback` is never removed (leak, and duplicates on re-insertion);
+  the `composed` event leaks the value across the shadow boundary; there is no
+  accessible name; and the field is not form-associated.
+
+- **Build** — "Build a secure, zero-dependency `<otp-input>` web component:
+  six single-digit boxes, form-associated, masks on a `sensitive` tier, and
+  pastes a 6-digit code across the boxes. No framework."
+
+- **Harden** — "This component adds a `resize` listener in `connectedCallback`
+  but never removes it, and fires a `change` event with the input's value in
+  `detail`. Fix the leak and stop the value leaking across the shadow boundary."
+
+- **Theme** — "Make this component themeable without forking it — expose colours
+  and spacing as CSS custom properties and add `::part()` hooks."
+
+- **Convert** — "Turn this plain `<input>` wrapper into a form-associated custom
+  element using `ElementInternals`, with fail-secure defaults and a visible
+  focus state."
+
 ## The example
 
 ![The secure-text-input demo: a public email, a masked password, an injection
