@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>star-rating demo</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; }
+    form { display: grid; gap: 1.5rem; }
+    output { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <h1>star-rating</h1>
+  <p>Operate it with the mouse, or focus it and use arrow keys, Home and End.
+     It submits with the form and announces its value to a screen reader.</p>
+
+  <form>
+    <p>
+      <label id="rate-label">Rate this article</label><br>
+      <star-rating name="score" max="5" value="3" aria-labelledby="rate-label"></star-rating>
+    </p>
+    <p>Current value: <output id="out">3</output></p>
+    <p><button type="submit">Submit</button> <button type="reset">Reset</button></p>
+  </form>
+
+  <script type="module" src="./star-rating.js"></script>
+  <script type="module">
+    const rating = document.querySelector("star-rating");
+    const out = document.getElementById("out");
+    rating.addEventListener("change", (e) => { out.textContent = e.detail.value; });
+    document.querySelector("form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      out.textContent = `submitted: ${new FormData(e.target).get("score")}`;
+    });
+  </script>
+</body>
+</html>
